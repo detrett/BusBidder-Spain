@@ -1,6 +1,7 @@
 from math import isfinite
 
 from busbidder.exceptions import DataValidationError
+from busbidder.models import Company, Destination, Offer
 
 
 def validate_offer_values(offer, line_number):
@@ -32,3 +33,25 @@ def validate_offer_values(offer, line_number):
 
     if offer.arrival_at <= offer.departure_at:
         raise DataValidationError(f"offers.csv, line {line_number}: arrival_at must be after departure_at.")
+
+
+def validate_offer_references(offers, companies, destinations):
+    """
+    Check that every offer refers to a known, valid company and destination.
+        Args:
+            offers: The Offer objects to check.
+            companies: The Company objects available in the marketplace.
+            destinations: The Destination objects available in the marketplace.
+
+        Raises:
+            DataValidationError: If an offer refers to an unknown company or destination.
+    """
+    company_ids = {company.company_id for company in companies}
+    destination_ids = {destination.destination_id for destination in destinations}
+
+    for line_number, offer in enumerate(offers, start=2):
+        if offer.company_id not in company_ids:
+            raise DataValidationError(f"offers.csv, line {line_number}: unknown company_id ({offer.company_id})")
+
+        if offer.destination_id not in destination_ids:
+            raise DataValidationError(f"offers.csv, line {line_number}: unknown destination_id ({offer.destination_id})")

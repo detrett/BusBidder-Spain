@@ -3,6 +3,7 @@ from busbidder.data_loader import (
     load_destinations,
     load_offers,
 )
+from busbidder.validators import validate_offer_references
 
 # List of the required headers for each CSV file
 COMPANY_COLUMNS = ("company_id", "name", "description")
@@ -29,6 +30,7 @@ def main():
     destinations = load_destinations(DESTINATION_COLUMNS)
     offers = load_offers(OFFER_COLUMNS)
 
+    validate_offer_references(offers, companies, destinations)
 
     print (f"Loaded {len(companies)} companies")
     print (f"Loaded {len(destinations)} destinations")
