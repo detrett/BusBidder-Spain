@@ -1,12 +1,24 @@
 import csv
 from pathlib import Path
 
-from busbidder.exceptions import DataLoadError
+from busbidder.exceptions import DataLoadError, DataValidationError
 
 # Find the project's data folder relative to this module
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 def load_csv(filename, required_columns):
+    """
+    Load a CSV file and check that it has the required columns.
+        Args:
+            filename: The CSV file's name, such as "companies.csv".
+            required_columns: The headers that must be present in the file.
+
+        Returns:
+            A list of dictionaries, one for each CSV row.
+
+        Raises:
+            DataLoadError: If the file cannot be opened or has an invalid structure.
+    """
     # Path to the CSV file
     path = DATA_DIR / filename
 
@@ -34,3 +46,33 @@ def load_csv(filename, required_columns):
     # Catch file access errors
     except OSError as error:
         raise DataLoadError(f"Could not open {filename}: {error}") from error
+
+
+def validate_unique_ids(rows, filename, id_column):
+    """
+    Check that every row has a unique, nonblank value in the ID column.
+        Args:
+            rows: The CSV rows to check.
+            filename: The file's name, used in error messages.
+            id_column: The column whose values must be unique.
+
+        Raises:
+            DataValidationError: If an ID is blank, has extra spaces, or is duplicated.
+    """
+    seen_ids = set()
+
+    # Skip the header, start on line 2
+    for line_number, row in enumerate(rows, start=2):
+        identifier = row[id_column]
+
+        if identifier is None or not identifier.strip():
+            raise DataValidationError(f"{filename}, line {line_number}: {id_column} cannot be blank.")
+
+        if identifier != identifier.strip():
+            raise DataValidationError(f"{filename}, line {line_number}: {id_column} has extra spaces.")
+
+        if identifier in seen_ids:
+            raise DataValidationError(f"{filename}, line {line_number}: duplicate {id_column} "
+                f"'{identifier}'.")
+
+        seen_ids.add(identifier)
