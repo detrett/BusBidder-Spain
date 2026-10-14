@@ -17,7 +17,7 @@ def validate_offer_values(offer, line_number):
 
     # The value of prices and ratings has to be a finite number within a defined range
     if not isfinite(offer.price_eur) or offer.price_eur < 0:
-        raise DataValidationError( f"offers.csv, line {line_number}: price_eur must be a positive number")
+        raise DataValidationError( f"offers.csv, line {line_number}: price_eur must be a nonnegative number")
 
     if offer.transfers < 0:
         raise DataValidationError(f"offers.csv, line {line_number}: transfers cannot be negative.")
@@ -55,3 +55,31 @@ def validate_offer_references(offers, companies, destinations):
 
         if offer.destination_id not in destination_ids:
             raise DataValidationError(f"offers.csv, line {line_number}: unknown destination_id ({offer.destination_id})")
+
+
+def validate_company(company, line_number):
+    """
+    Check that a company's name is present.
+        Args:
+            company: The Company object to check.
+            line_number: The company's line number in companies.csv.
+
+        Raises:
+            DataValidationError: If the company name is blank.
+    """
+    if not company.name.strip():
+        raise DataValidationError(f"companies.csv, line {line_number}: name cannot be blank.")
+
+
+def validate_destination(destination, line_number):
+    """
+    Check that a destination's name is present.
+        Args:
+            destination: The Destination object to check.
+            line_number: The destination's line number in destinations.csv.
+
+        Raises:
+            DataValidationError: If the destination name is blank.
+    """
+    if not destination.name.strip():
+        raise DataValidationError(f"destinations.csv, line {line_number}: name cannot be blank.")

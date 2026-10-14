@@ -5,7 +5,7 @@ from pathlib import Path
 from busbidder.exceptions import DataLoadError, DataValidationError
 from busbidder.helpers import parse_boolean
 from busbidder.models import Company, Destination, Offer
-from busbidder.validators import validate_offer_values
+from busbidder.validators import validate_company, validate_destination, validate_offer_values
 
 # Find the project's data folder relative to this module
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
@@ -96,12 +96,14 @@ def load_companies(required_columns):
 
     # Convert each row into a Company object
     companies = []
-    for row in rows:
+    for line_number, row in enumerate(rows, start=2):
         company = Company(
             company_id=row["company_id"],
             name=row["name"],
             description=row["description"],
         )
+
+        validate_company(company, line_number)
         companies.append(company)
 
     return companies
@@ -121,11 +123,13 @@ def load_destinations(required_columns):
 
     # Convert each row into a Destination object
     destinations = []
-    for row in rows:
+    for line_number, row in enumerate(rows, start=2):
         destination = Destination(
             destination_id=row["destination_id"],
             name=row["name"],
         )
+
+        validate_destination(destination, line_number)
         destinations.append(destination)
 
     return destinations
