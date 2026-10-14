@@ -1,8 +1,16 @@
+from datetime import time
+
+from busbidder.cli import (
+    choose_destination,
+    choose_travel_dates,
+    collect_search_request,
+)
 from busbidder.data_loader import (
     load_companies,
     load_destinations,
     load_offers,
 )
+from busbidder.models import SearchRequest
 from busbidder.validators import validate_offer_references
 
 # List of the required headers for each CSV file
@@ -24,7 +32,7 @@ OFFER_COLUMNS = (
 )
 
 def main():
-    """Load the marketplace data and display the number of records in each file."""
+    """Load the marketplace data and create a search request."""
     # Load each source dataset from the data folder
     companies = load_companies(COMPANY_COLUMNS)
     destinations = load_destinations(DESTINATION_COLUMNS)
@@ -36,6 +44,10 @@ def main():
     print (f"Loaded {len(destinations)} destinations")
     print (f"Loaded {len(offers)} offers")
 
+    request = collect_search_request(destinations)
+
+    print("\nTemporary search request:")
+    print(request)
 
 if __name__ == "__main__":
     main()

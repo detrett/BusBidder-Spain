@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime, time
 
 @dataclass
 class Company:
@@ -41,4 +41,16 @@ class Offer:
 
         duration = self.arrival_at - self.departure_at
         return int(duration.total_seconds() // 60)
-    
+
+
+@dataclass
+class SearchRequest:
+    """Store the constraints and preferences for one journey search."""
+
+    destination_id: str
+    earliest_date: date
+    latest_date: date
+    max_price_eur: float
+    max_transfers: int
+    require_changeable: bool
+    preferred_departure_time: time | None = None
