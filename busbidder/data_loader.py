@@ -2,6 +2,7 @@ import csv
 from pathlib import Path
 
 from busbidder.exceptions import DataLoadError, DataValidationError
+from busbidder.models import Company, Destination
 
 # Find the project's data folder relative to this module
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
@@ -76,3 +77,52 @@ def validate_unique_ids(rows, filename, id_column):
                 f"'{identifier}'.")
 
         seen_ids.add(identifier)
+
+
+def load_companies(required_columns):
+    """
+    Load company rows and convert them into Company objects.
+        Args:
+            required_columns: The headers required in companies.csv.
+
+        Returns:
+            A list of Company objects.
+    """
+    rows = load_csv("companies.csv", required_columns)
+    validate_unique_ids(rows, "companies.csv", "company_id")
+
+    # Convert each row into a Company object
+    companies = []
+    for row in rows:
+        company = Company(
+            company_id=row["company_id"],
+            name=row["name"],
+            description=row["description"],
+        )
+        companies.append(company)
+
+    return companies
+
+
+def load_destinations(required_columns):
+    """
+    Load destination rows and convert them into Destination objects.
+        Args:
+            required_columns: The headers required in destinations.csv.
+
+        Returns:
+            A list of Destination objects.
+    """
+    rows = load_csv("destinations.csv", required_columns)
+    validate_unique_ids(rows, "destinations.csv", "destination_id")
+
+    # Convert each row into a Destination object
+    destinations = []
+    for row in rows:
+        destination = Destination(
+            destination_id=row["destination_id"],
+            name=row["name"],
+        )
+        destinations.append(destination)
+
+    return destinations

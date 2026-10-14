@@ -1,4 +1,9 @@
-from busbidder.data_loader import load_csv, validate_unique_ids
+from busbidder.data_loader import (
+    load_companies,
+    load_csv,
+    load_destinations,
+    validate_unique_ids,
+)
 
 # List of the required headers for each CSV file
 COMPANY_COLUMNS = ("company_id", "name", "description")
@@ -21,18 +26,15 @@ OFFER_COLUMNS = (
 def main():
     """Load the marketplace data and display the number of records in each file."""
     # Load each source dataset from the data folder
-    companies = load_csv("companies.csv", COMPANY_COLUMNS)
-    destinations = load_csv("destinations.csv", DESTINATION_COLUMNS)
-    offers = load_csv("offers.csv", OFFER_COLUMNS)
+    companies = load_companies(COMPANY_COLUMNS)
+    destinations = load_destinations(DESTINATION_COLUMNS)
 
-    # Check that each type of record has a distinct ID.
-    validate_unique_ids(companies, "companies.csv", "company_id")
-    validate_unique_ids(destinations, "destinations.csv", "destination_id")
-    validate_unique_ids(offers, "offers.csv", "offer_id")
+    offer_rows = load_csv("offers.csv", OFFER_COLUMNS)
+    validate_unique_ids(offer_rows, "offers.csv", "offer_id")
 
     print (f"Loaded {len(companies)} companies")
     print (f"Loaded {len(destinations)} destinations")
-    print (f"Loaded {len(offers)} offers")
+    print (f"Loaded {len(offer_rows)} offers")
 
 
 if __name__ == "__main__":
