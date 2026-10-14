@@ -1,8 +1,10 @@
 import csv
+from datetime import datetime
 from pathlib import Path
 
 from busbidder.exceptions import DataLoadError, DataValidationError
-from busbidder.models import Company, Destination
+from busbidder.helpers import parse_boolean
+from busbidder.models import Company, Destination, Offer
 
 # Find the project's data folder relative to this module
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
@@ -126,3 +128,46 @@ def load_destinations(required_columns):
         destinations.append(destination)
 
     return destinations
+
+
+def load_offers(required_columns):
+    """
+    Load offer rows and convert them into Offer objects.
+       Args:
+           required_columns: The headers required in offers.csv.
+
+       Returns:
+           A list of Offer objects.
+
+       Raises:
+           DataValidationError: If an offer value cannot be converted.
+    """
+    rows = load_csv("offers.csv", required_columns)
+    validate_unique_ids(rows, "offers.csv", "offer_id")
+
+    # Convert each row into an Offer object
+    offers = []
+    for line_number, row in enumerate(rows, start=2):
+        try:
+            offer = Offer(
+                offer_id=row["offer_id"],
+                company_id=row["company_id"],
+                destination_id=row["destination_id"],
+                departure_at=datetime.fromisoformat(row["departure_at"]),
+                arrival_at=datetime.fromisoformat(row["arrival_at"]),
+                price_eur=float(row["price_eur"]),
+                transfers=int(row["transfers"]),
+                luggage_kg=int(row["luggage_kg"]),
+                changeable=parse_boolean(row["changeable"]),
+                refundable=parse_boolean(row["refundable"]),
+                seats_available=int(row["seats_available"]),
+                rating=float(row["rating"]),
+            )
+        except (TypeError, ValueError) as error:
+            raise DataValidationError(
+                f"offers.csv, line {line_number}: invalid offer value: {error}"
+            ) from error
+
+        offers.append(offer)
+
+    return offers

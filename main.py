@@ -1,8 +1,7 @@
 from busbidder.data_loader import (
     load_companies,
-    load_csv,
     load_destinations,
-    validate_unique_ids,
+    load_offers,
 )
 
 # List of the required headers for each CSV file
@@ -28,13 +27,12 @@ def main():
     # Load each source dataset from the data folder
     companies = load_companies(COMPANY_COLUMNS)
     destinations = load_destinations(DESTINATION_COLUMNS)
+    offers = load_offers(OFFER_COLUMNS)
 
-    offer_rows = load_csv("offers.csv", OFFER_COLUMNS)
-    validate_unique_ids(offer_rows, "offers.csv", "offer_id")
 
     print (f"Loaded {len(companies)} companies")
     print (f"Loaded {len(destinations)} destinations")
-    print (f"Loaded {len(offer_rows)} offers")
+    print (f"Loaded {len(offers)} offers")
 
 
 if __name__ == "__main__":
