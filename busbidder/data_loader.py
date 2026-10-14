@@ -5,6 +5,7 @@ from pathlib import Path
 from busbidder.exceptions import DataLoadError, DataValidationError
 from busbidder.helpers import parse_boolean
 from busbidder.models import Company, Destination, Offer
+from busbidder.validators import validate_offer_values
 
 # Find the project's data folder relative to this module
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
@@ -168,6 +169,8 @@ def load_offers(required_columns):
                 f"offers.csv, line {line_number}: invalid offer value: {error}"
             ) from error
 
+        # Validate the values before appending the offer
+        validate_offer_values(offer, line_number)
         offers.append(offer)
 
     return offers
