@@ -8,6 +8,7 @@ from busbidder.data_loader import (
     load_offers,
 )
 from busbidder.profiles import get_traveler_profiles
+from busbidder.ranking import rank_offers
 from busbidder.search import filter_offers
 from busbidder.validators import validate_offer_references
 
@@ -56,22 +57,42 @@ def main():
     selected_profile = choose_traveler_profile(profiles)
 
     print(f"\nSelected profile: {selected_profile.name}")
-    print("Matching offers (not ranked yet):")
+
+    ranked_offers = rank_offers(matching_offers, selected_profile, request)
+
+    print(f"\nOffers ranked for a {selected_profile.name} profile:")
 
     company_names = {
         company.company_id: company.name
         for company in companies
     }
 
-    for offer in matching_offers:
+    for position, result in enumerate(ranked_offers, start=1):
+        offer = result.offer
+        company_name = company_names[offer.company_id]
         changeable_text = "Yes" if offer.changeable else "No"
+        refundable_text= "Yes" if offer.refundable else "No"
+
         print(
-            f"{company_names[offer.company_id]} | "
-            f"{offer.departure_at:%Y-%m-%d %H:%M} to "
+            f"\n{position}. {company_name} | "
+            f"Total score: {result.total_score:.2f}/100"
+        )
+        print(
+            f"   {offer.departure_at:%Y-%m-%d %H:%M} to "
             f"{offer.arrival_at:%Y-%m-%d %H:%M} | "
             f"EUR {offer.price_eur:.2f} | "
-            f"{offer.transfers} transfers | "
-            f"Changeable: {changeable_text}"
+            f"{offer.duration_minutes} minutes | "
+            f"{offer.transfers} transfers"
+        )
+        print(
+            f"   Changeable: {changeable_text} | "
+            f"Refundable: {refundable_text}"
+        )
+        print(
+            f"   Scores - Price: {result.price_score:.1f}, "
+            f"Duration: {result.duration_score:.1f}, "
+            f"Departure time: {result.departure_time_score:.1f}, "
+            f"Flexibility: {result.flexibility_score:.1f}"
         )
 
 if __name__ == "__main__":

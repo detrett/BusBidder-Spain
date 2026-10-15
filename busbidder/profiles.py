@@ -12,19 +12,19 @@ def get_traveler_profiles():
         TravelerProfile(
             name="Budget-focused",
             weights=RankingWeights(
-                price=0.50,
-                duration=0.20,
+                price=0.60,
+                duration=0.25,
                 departure_time=0.10,
-                flexibility=0.20,
+                flexibility=0.05,
             ),
         ),
         TravelerProfile(
             name="Business",
             weights=RankingWeights(
-                price=0.15,
-                duration=0.35,
-                departure_time=0.40,
-                flexibility=0.10,
+                price=0.25,
+                duration=0.40,
+                departure_time=0.30,
+                flexibility=0.05,
             ),
         ),
         TravelerProfile(

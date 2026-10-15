@@ -72,3 +72,15 @@ class TravelerProfile:
 
     name: str
     weights: RankingWeights
+
+
+@dataclass
+class RankedOffer:
+    """Store an offer and its individual and combined ranking scores."""
+
+    offer: Offer
+    price_score: float
+    duration_score: float
+    departure_time_score: float
+    flexibility_score: float
+    total_score: float
