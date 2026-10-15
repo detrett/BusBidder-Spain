@@ -54,3 +54,21 @@ class SearchRequest:
     max_transfers: int
     require_changeable: bool
     preferred_departure_time: time | None = None
+
+
+@dataclass
+class RankingWeights:
+    """Store the importance assigned to each ranking criterion."""
+
+    price: float
+    duration: float
+    departure_time: float
+    flexibility: float
+
+
+@dataclass
+class TravelerProfile:
+    """Represent a traveler's named set of ranked preferences"""
+
+    name: str
+    weights: RankingWeights

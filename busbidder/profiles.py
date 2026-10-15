@@ -1,0 +1,44 @@
+from busbidder.models import RankingWeights, TravelerProfile
+from busbidder.validators import validate_ranking_weights
+
+
+def get_traveler_profiles():
+    """
+    Create and validate the marketplace's example traveler profiles.
+        Returns:
+            A list of TravelerProfile objects.
+    """
+    profiles = [
+        TravelerProfile(
+            name="Budget-focused",
+            weights=RankingWeights(
+                price=0.50,
+                duration=0.20,
+                departure_time=0.10,
+                flexibility=0.20,
+            ),
+        ),
+        TravelerProfile(
+            name="Business",
+            weights=RankingWeights(
+                price=0.15,
+                duration=0.35,
+                departure_time=0.40,
+                flexibility=0.10,
+            ),
+        ),
+        TravelerProfile(
+            name="Flexibility-focused",
+            weights=RankingWeights(
+                price=0.15,
+                duration=0.15,
+                departure_time=0.10,
+                flexibility=0.60,
+            ),
+        ),
+    ]
+
+    for profile in profiles:
+        validate_ranking_weights(profile.weights)
+
+    return profiles

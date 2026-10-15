@@ -1,7 +1,12 @@
-from math import isfinite
+from math import isclose, isfinite
 
 from busbidder.exceptions import DataValidationError
-from busbidder.models import Company, Destination, Offer
+from busbidder.models import (
+    Company,
+    Destination,
+    Offer,
+    RankingWeights,
+)
 
 
 def validate_offer_values(offer, line_number):
@@ -83,3 +88,28 @@ def validate_destination(destination, line_number):
     """
     if not destination.name.strip():
         raise DataValidationError(f"destinations.csv, line {line_number}: name cannot be blank.")
+
+
+def validate_ranking_weights(weights):
+    """
+    Check that ranking weights are valid and add up to 1.0.
+        Args:
+            weights: The RankingWeights object to check.
+
+        Raises:
+            DataValidationError: If a weight is invalid or the total is not 1.0.
+    """
+    values = (
+        weights.price,
+        weights.duration,
+        weights.departure_time,
+        weights.flexibility,
+    )
+
+    if any(not isfinite(value) or value < 0 or value > 1 for value in values):
+        raise DataValidationError(
+            "Each ranking weight must be a finite number from 0.0 to 1.0."
+        )
+
+    if not isclose(sum(values), 1.0, abs_tol=1e-9):
+        raise DataValidationError("Ranking weights must add up to 1.0.")
