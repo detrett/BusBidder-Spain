@@ -15,11 +15,22 @@ from busbidder.data_loader import (
     load_destinations,
     load_offers,
 )
+from busbidder.exceptions import (
+    DataLoadError,
+    DataSaveError,
+    DataValidationError,
+)
 from busbidder.profiles import get_traveler_profiles
 from busbidder.ranking import rank_offers
 from busbidder.recommendations import explain_recommendation
 from busbidder.search import filter_offers
 from busbidder.validators import validate_offer_references
+
+import logging
+from pathlib import Path
+
+logger = logging.getLogger(__name__)
+LOG_FILE = Path(__file__).resolve().parent / "busbidder.log"
 
 # List of the required headers for each CSV file
 COMPANY_COLUMNS = ("company_id", "name", "description")
@@ -40,12 +51,33 @@ OFFER_COLUMNS = (
 )
 
 
+def configure_logging():
+    """Set up a file for recording important application events."""
+    logging.basicConfig(
+        filename=LOG_FILE,
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        encoding="utf-8",
+    )
+
+
 def main():
     """Load the marketplace data, collect a search request, show matching offers."""
+    # Logger initialization
+    configure_logging()
+    logger.info("BusBidder application started.")
+
     # Load each source dataset from the data folder
     companies = load_companies(COMPANY_COLUMNS)
     destinations = load_destinations(DESTINATION_COLUMNS)
     offers = load_offers(OFFER_COLUMNS)
+
+    logger.info(
+        "Loaded %d companies, %d destinations, and %d offers.",
+        len(companies),
+        len(destinations),
+        len(offers),
+    )
 
     validate_offer_references(offers, companies, destinations)
 
@@ -58,6 +90,12 @@ def main():
 
     request = collect_search_request(destinations)
     matching_offers = filter_offers(offers, request)
+
+    logger.info(
+        "Search for destination %s found %d matching offers.",
+        request.destination_id,
+        len(matching_offers),
+    )
 
     print(f"\nOffers meeting your constraints: {len(matching_offers)}")
 
@@ -134,6 +172,12 @@ def main():
     booking = create_booking(selected_offer, bookings)
     save_booking(booking)
 
+    logger.info(
+        "Booking %s saved for offer %s.",
+        booking.booking_reference,
+        booking.offer_id,
+    )
+
     print("\nBooking confirmed!")
     print(f"Booking reference: {booking.booking_reference}")
     print(f"Offer: {booking.offer_id}")
@@ -142,4 +186,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except (DataLoadError, DataValidationError, DataSaveError) as error:
+        logger.exception("BusBidder stopped because of a data or save error.")
+        print(f"\nError: {error}")
+        raise SystemExit(1)
