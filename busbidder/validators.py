@@ -1,12 +1,6 @@
 from math import isclose, isfinite
 
 from busbidder.exceptions import DataValidationError
-from busbidder.models import (
-    Company,
-    Destination,
-    Offer,
-    RankingWeights,
-)
 
 
 def validate_offer_values(offer, line_number):

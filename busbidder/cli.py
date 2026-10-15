@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import datetime
 from math import isfinite
 
 from busbidder.models import SearchRequest

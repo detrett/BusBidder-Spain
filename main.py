@@ -9,6 +9,7 @@ from busbidder.data_loader import (
 )
 from busbidder.profiles import get_traveler_profiles
 from busbidder.ranking import rank_offers
+from busbidder.recommendations import explain_recommendation
 from busbidder.search import filter_offers
 from busbidder.validators import validate_offer_references
 
@@ -94,6 +95,19 @@ def main():
             f"Departure time: {result.departure_time_score:.1f}, "
             f"Flexibility: {result.flexibility_score:.1f}"
         )
+
+    top_result = ranked_offers[0]
+    top_company_name = company_names[top_result.offer.company_id]
+
+    print("\nWhy this offer ranks first:")
+    print(
+        explain_recommendation(
+            top_result,
+            request,
+            selected_profile,
+            top_company_name,
+        )
+    )
 
 if __name__ == "__main__":
     main()

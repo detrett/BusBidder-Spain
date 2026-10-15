@@ -1,4 +1,4 @@
-from busbidder.models import RankedOffer, SearchRequest, TravelerProfile
+from busbidder.models import RankedOffer
 
 
 def _score_lower_is_better(value, lowest_value, highest_value):

@@ -1,6 +1,3 @@
-from busbidder.models import SearchRequest, Offer
-
-
 def filter_offers(offers, request):
     """
     Return offers that meet the traveler's search constraints.
