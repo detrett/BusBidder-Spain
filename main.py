@@ -1,10 +1,13 @@
-from busbidder.cli import collect_search_request
+from busbidder.cli import (
+    choose_traveler_profile,
+    collect_search_request,
+)
 from busbidder.data_loader import (
     load_companies,
     load_destinations,
     load_offers,
 )
-from busbidder.models import Company
+from busbidder.profiles import get_traveler_profiles
 from busbidder.search import filter_offers
 from busbidder.validators import validate_offer_references
 
@@ -49,12 +52,17 @@ def main():
         print("No offers match this search.")
         return
 
+    profiles = get_traveler_profiles()
+    selected_profile = choose_traveler_profile(profiles)
+
+    print(f"\nSelected profile: {selected_profile.name}")
+    print("Matching offers (not ranked yet):")
+
     company_names = {
         company.company_id: company.name
         for company in companies
     }
 
-    print("\nMatching offers (not ranked yet):")
     for offer in matching_offers:
         changeable_text = "Yes" if offer.changeable else "No"
         print(

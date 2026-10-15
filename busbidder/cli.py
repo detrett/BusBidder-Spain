@@ -147,3 +147,37 @@ def collect_search_request(destinations):
         require_changeable=require_changeable,
         preferred_departure_time=preferred_departure_time,
     )
+
+
+def choose_traveler_profile(profiles):
+    """
+    Ask the traveller to choose a ranking profile.
+       Args:
+           profiles: The available TravelerProfile objects.
+
+       Returns:
+           The chosen TravelerProfile.
+    """
+    print("\nAvailable traveler profiles:")
+
+    for number, profile in enumerate(profiles, start=1):
+        weights = profile.weights
+        print(
+            f"{number}. {profile.name} - "
+            f"Price: {weights.price:.0%}, "
+            f"Duration: {weights.duration:.0%}, "
+            f"Departure time: {weights.departure_time:.0%}, "
+            f"Flexibility: {weights.flexibility:.0%}"
+        )
+
+    while True:
+        try:
+            choice = int(input("Choose a profile by entering its number: "))
+        except ValueError:
+            print("Please enter the number of one of the profiles.")
+            continue
+
+        if 1 <= choice <= len(profiles):
+            return profiles[choice - 1]
+
+        print(f"Please enter a number from 1 to {len(profiles)}.")
