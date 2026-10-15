@@ -1,16 +1,11 @@
-from datetime import time
-
-from busbidder.cli import (
-    choose_destination,
-    choose_travel_dates,
-    collect_search_request,
-)
+from busbidder.cli import collect_search_request
 from busbidder.data_loader import (
     load_companies,
     load_destinations,
     load_offers,
 )
-from busbidder.models import SearchRequest
+from busbidder.models import Company
+from busbidder.search import filter_offers
 from busbidder.validators import validate_offer_references
 
 # List of the required headers for each CSV file
@@ -31,8 +26,9 @@ OFFER_COLUMNS = (
     "rating",
 )
 
+
 def main():
-    """Load the marketplace data and create a search request."""
+    """Load the marketplace data, collect a search request, show matching offers."""
     # Load each source dataset from the data folder
     companies = load_companies(COMPANY_COLUMNS)
     destinations = load_destinations(DESTINATION_COLUMNS)
@@ -45,9 +41,30 @@ def main():
     print (f"Loaded {len(offers)} offers")
 
     request = collect_search_request(destinations)
+    matching_offers = filter_offers(offers, request)
 
-    print("\nTemporary search request:")
-    print(request)
+    print(f"\nOffers meeting your constraints: {len(matching_offers)}")
+
+    if not matching_offers:
+        print("No offers match this search.")
+        return
+
+    company_names = {
+        company.company_id: company.name
+        for company in companies
+    }
+
+    print("\nMatching offers (not ranked yet):")
+    for offer in matching_offers:
+        changeable_text = "Yes" if offer.changeable else "No"
+        print(
+            f"{company_names[offer.company_id]} | "
+            f"{offer.departure_at:%Y-%m-%d %H:%M} to "
+            f"{offer.arrival_at:%Y-%m-%d %H:%M} | "
+            f"EUR {offer.price_eur:.2f} | "
+            f"{offer.transfers} transfers | "
+            f"Changeable: {changeable_text}"
+        )
 
 if __name__ == "__main__":
     main()

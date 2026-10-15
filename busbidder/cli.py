@@ -64,7 +64,7 @@ def choose_search_limits():
             print("Please enter a valid number for the budget.")
             continue
 
-        if isfinite(max_price_eur) and max_price_eur >= 0:
+        if isfinite(max_price_eur) and max_price_eur > 0:
             break
 
         print("The budget must be a nonnegative, finite number.")
@@ -144,6 +144,6 @@ def collect_search_request(destinations):
         latest_date=latest_date,
         max_price_eur=max_price_eur,
         max_transfers=max_transfers,
-        require_changeable=True,
-        preferred_departure_time=time(8, 0),
+        require_changeable=require_changeable,
+        preferred_departure_time=preferred_departure_time,
     )
