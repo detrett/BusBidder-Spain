@@ -84,3 +84,15 @@ class RankedOffer:
     departure_time_score: float
     flexibility_score: float
     total_score: float
+
+
+@dataclass
+class Booking:
+    """Represent a saved booking for one seat on an offer."""
+
+    booking_reference: str
+    offer_id: str
+    booked_at: datetime
+    price_eur: float
+    changeable: bool
+    refundable: bool

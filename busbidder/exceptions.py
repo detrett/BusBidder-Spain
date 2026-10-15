@@ -4,3 +4,6 @@ class DataLoadError(Exception):
 
 class DataValidationError(Exception):
     """Raised when a data record fails validation."""
+
+class DataSaveError(Exception):
+    """Raised when a booking cannot be saved."""

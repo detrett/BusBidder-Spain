@@ -181,3 +181,50 @@ def choose_traveler_profile(profiles):
             return profiles[choice - 1]
 
         print(f"Please enter a number from 1 to {len(profiles)}.")
+
+
+def choose_offer_to_book(ranked_offers):
+    """
+    Ask which ranked offer the traveler wants to book.
+       Args:
+           ranked_offers: The RankedOffer results shown to the traveler.
+
+       Returns:
+           The selected Offer, or None if the traveler skips booking.
+    """
+    while True:
+        choice = input(
+            "\nEnter the number of an offer to book, or press Enter to skip: "
+        ).strip()
+
+        if not choice:
+            return None
+
+        try:
+            offer_number = int(choice)
+        except ValueError:
+            print("Please enter one of the offer numbers.")
+            continue
+
+        if 1 <= offer_number <= len(ranked_offers):
+            return ranked_offers[offer_number - 1].offer
+
+        print(f"Please enter a number from 1 to {len(ranked_offers)}.")
+
+
+def confirm_booking():
+    """
+    Ask the traveler to confirm that they want to book the selected offer.
+        Returns:
+            True if they confirm, otherwise False.
+    """
+    while True:
+        answer = input("Confirm this booking? (yes/no): ").strip().lower()
+
+        if answer in ("yes", "y"):
+            return True
+
+        if answer in ("no", "n"):
+            return False
+
+        print("Please answer yes or no.")

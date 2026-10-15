@@ -1,6 +1,14 @@
+from busbidder.booking import (
+    apply_bookings_to_offers,
+    create_booking,
+    load_bookings,
+    save_booking,
+)
 from busbidder.cli import (
+    choose_offer_to_book,
     choose_traveler_profile,
     collect_search_request,
+    confirm_booking,
 )
 from busbidder.data_loader import (
     load_companies,
@@ -40,6 +48,9 @@ def main():
     offers = load_offers(OFFER_COLUMNS)
 
     validate_offer_references(offers, companies, destinations)
+
+    bookings = load_bookings()
+    apply_bookings_to_offers(offers, bookings)
 
     print (f"Loaded {len(companies)} companies")
     print (f"Loaded {len(destinations)} destinations")
@@ -83,7 +94,8 @@ def main():
             f"{offer.arrival_at:%Y-%m-%d %H:%M} | "
             f"EUR {offer.price_eur:.2f} | "
             f"{offer.duration_minutes} minutes | "
-            f"{offer.transfers} transfers"
+            f"{offer.transfers} transfers | "
+            f"Seats available: {offer.seats_available}"
         )
         print(
             f"   Changeable: {changeable_text} | "
@@ -108,6 +120,26 @@ def main():
             top_company_name,
         )
     )
+
+    selected_offer = choose_offer_to_book(ranked_offers)
+
+    if selected_offer is None:
+        print("No booking was made.")
+        return
+
+    if not confirm_booking():
+        print("Booking cancelled.")
+        return
+
+    booking = create_booking(selected_offer, bookings)
+    save_booking(booking)
+
+    print("\nBooking confirmed!")
+    print(f"Booking reference: {booking.booking_reference}")
+    print(f"Offer: {booking.offer_id}")
+    print(f"Price: EUR {booking.price_eur:.2f}")
+
+
 
 if __name__ == "__main__":
     main()
