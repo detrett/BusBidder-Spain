@@ -3,11 +3,21 @@ from math import isfinite
 import tkinter as tk
 from tkinter import messagebox, ttk
 
-from busbidder.booking import apply_bookings_to_offers, load_bookings
+from busbidder.booking import (
+    apply_bookings_to_offers,
+    create_booking,
+    load_bookings,
+    save_booking,
+)
 from busbidder.data_loader import (
     load_companies,
     load_destinations,
     load_offers,
+)
+from busbidder.exceptions import (
+    DataLoadError,
+    DataSaveError,
+    DataValidationError,
 )
 from busbidder.models import SearchRequest
 from busbidder.profiles import get_traveler_profiles
@@ -327,7 +337,67 @@ def main():
                 "No offers match these search constraints.",
             )
 
+    def book_selected_offer():
+        """Confirm and save a booking for the selected result."""
+        selection = results_tree.selection()
 
+        if not selection:
+            messagebox.showwarning(
+                "No offer selected",
+                "Select an offer in the results table first.",
+            )
+            return
+
+        offer_id = selection[0]
+        result = ranked_by_offer_id.get(offer_id)
+
+        if result is None:
+            return
+
+        offer = result.offer
+
+        # Check again in case the available seats changed after the search.
+        if offer.seats_available <= 0:
+            messagebox.showerror(
+                "No seats available",
+                "This offer no longer has any seats available.",
+            )
+            search()
+            return
+
+        company_name = company_names[offer.company_id]
+        confirmed = messagebox.askyesno(
+            "Confirm booking",
+            f"Book this offer with {company_name}?\n\n"
+            f"Departure: {offer.departure_at:%Y-%m-%d %H:%M}\n"
+            f"Price: EUR {offer.price_eur:.2f}\n"
+            f"Changeable: {'Yes' if offer.changeable else 'No'}\n"
+            f"Refundable: {'Yes' if offer.refundable else 'No'}",
+        )
+
+        if not confirmed:
+            return
+
+        try:
+            booking = create_booking(offer, bookings)
+            save_booking(booking)
+        except (DataLoadError, DataSaveError, DataValidationError) as error:
+            messagebox.showerror("Booking failed", str(error))
+            return
+
+        # Update the in-memory data after the booking has been saved.
+        bookings.append(booking)
+        offer.seats_available -= 1
+
+        messagebox.showinfo(
+            "Booking confirmed",
+            f"Booking reference: {booking.booking_reference}\n"
+            f"Offer: {booking.offer_id}\n"
+            f"Price: EUR {booking.price_eur:.2f}",
+        )
+
+        # Run the current search again so the seat count and results refresh.
+        search()
 
     ttk.Label(form, text="Destination").grid(row=0, column=0, sticky="w", pady=6)
     ttk.Combobox(
@@ -403,6 +473,13 @@ def main():
 
     results_frame = ttk.Frame(content_frame, padding=(10, 0, 10, 10))
     results_frame.pack(fill="both", expand=True)
+
+    book_button = ttk.Button(
+        content_frame,
+        text="Book selected offer",
+        command=book_selected_offer,
+    )
+    book_button.pack(pady=(0, 10))
 
     columns = (
         "company",
