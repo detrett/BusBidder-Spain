@@ -30,6 +30,7 @@ class TestRankOffers(unittest.TestCase):
                 duration=0.0,
                 departure_time=0.0,
                 flexibility=0.0,
+                rating=0.0
             ),
         )
 
@@ -71,6 +72,7 @@ class TestRankOffers(unittest.TestCase):
                 duration=0.0,
                 departure_time=1.0,
                 flexibility=0.0,
+                rating=0.0
             ),
         )
         morning_offer = make_offer("O001", price_eur=40.0, departure_hour=8)
@@ -91,6 +93,37 @@ class TestRankOffers(unittest.TestCase):
         results = rank_offers([], self.price_profile, self.request)
 
         self.assertEqual(results, [])
+
+    def test_higher_rating_ranks_higher_when_only_rating_matters(self):
+        rating_profile = TravelerProfile(
+            name="Rating-focused",
+            weights=RankingWeights(
+                price=0.0,
+                duration=0.0,
+                departure_time=0.0,
+                flexibility=0.0,
+                rating=1.0,
+            ),
+        )
+        lower_rated = make_offer(
+            offer_id="O001",
+            price_eur=40.0,
+            rating=2.0,
+        )
+        higher_rated = make_offer(
+            offer_id="O002",
+            price_eur=40.0,
+            rating=4.5,
+        )
+
+        results = rank_offers(
+            [lower_rated, higher_rated],
+            rating_profile,
+            self.request,
+        )
+
+        self.assertEqual(results[0].offer.offer_id, "O002")
+        self.assertEqual(results[0].rating_score, 90.0)
 
 
 if __name__ == "__main__":

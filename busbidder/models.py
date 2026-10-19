@@ -64,6 +64,7 @@ class RankingWeights:
     duration: float
     departure_time: float
     flexibility: float
+    rating: float
 
 
 @dataclass
@@ -83,6 +84,7 @@ class RankedOffer:
     duration_score: float
     departure_time_score: float
     flexibility_score: float
+    rating_score: float
     total_score: float
 
 

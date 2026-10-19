@@ -29,6 +29,11 @@ def explain_recommendation(result, request, profile, company_name):
             f"the journey takes {offer.duration_minutes} minutes",
         ),
         (
+            "rating",
+            result.rating_score,
+            f"the customer rating is {offer.rating:.1f}/5",
+        ),
+        (
             "flexibility",
             result.flexibility_score,
             flexibility_detail,

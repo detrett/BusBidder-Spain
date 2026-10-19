@@ -133,7 +133,8 @@ def main():
             f"EUR {offer.price_eur:.2f} | "
             f"{offer.duration_minutes} minutes | "
             f"{offer.transfers} transfers | "
-            f"Seats available: {offer.seats_available}"
+            f"Seats available: {offer.seats_available} | "
+            f"Customer rating: {offer.rating:.1f}/5"
         )
         print(
             f"   Changeable: {changeable_text} | "
@@ -143,7 +144,8 @@ def main():
             f"   Scores - Price: {result.price_score:.1f}, "
             f"Duration: {result.duration_score:.1f}, "
             f"Departure time: {result.departure_time_score:.1f}, "
-            f"Flexibility: {result.flexibility_score:.1f}"
+            f"Flexibility: {result.flexibility_score:.1f}, "
+            f"Rating: {result.rating_score:.1f}"
         )
 
     top_result = ranked_offers[0]
@@ -163,6 +165,13 @@ def main():
 
     if selected_offer is None:
         print("No booking was made.")
+        return
+
+    # Ordinarily this shouldn't trigger, but just in case
+    if selected_offer.seats_available <= 0:
+        logger.warning("Booking attempt for sold-out offer %s",
+                       selected_offer.offer_id)
+        print("Sorry, this offer has no seats available.")
         return
 
     if not confirm_booking():

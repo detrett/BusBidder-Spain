@@ -55,6 +55,7 @@ def rank_offers(offers, profile, request):
     for index, offer in enumerate(offers):
         price_score = _score_lower_is_better(offer.price_eur, min(prices), max(prices))
         duration_score = _score_lower_is_better(offer.duration_minutes, min(durations), max(durations))
+        rating_score = offer.rating * 20
 
         if time_distances is None:
             departure_time_score = 50.0
@@ -73,6 +74,7 @@ def rank_offers(offers, profile, request):
                 + weights.duration * duration_score
                 + weights.departure_time * departure_time_score
                 + weights.flexibility * flexibility_score
+                + weights.rating * rating_score
         )
 
         ranked_offers.append(
@@ -83,6 +85,7 @@ def rank_offers(offers, profile, request):
                 departure_time_score=departure_time_score,
                 flexibility_score=flexibility_score,
                 total_score=total_score,
+                rating_score=rating_score,
             )
         )
 

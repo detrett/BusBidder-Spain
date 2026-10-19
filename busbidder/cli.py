@@ -167,7 +167,8 @@ def choose_traveler_profile(profiles):
             f"Price: {weights.price:.0%}, "
             f"Duration: {weights.duration:.0%}, "
             f"Departure time: {weights.departure_time:.0%}, "
-            f"Flexibility: {weights.flexibility:.0%}"
+            f"Flexibility: {weights.flexibility:.0%}, "
+            f"Rating: {weights.rating:.0%}"
         )
 
     while True:

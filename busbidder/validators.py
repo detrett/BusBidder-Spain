@@ -98,6 +98,7 @@ def validate_ranking_weights(weights):
         weights.duration,
         weights.departure_time,
         weights.flexibility,
+        weights.rating,
     )
 
     if any(not isfinite(value) or value < 0 or value > 1 for value in values):

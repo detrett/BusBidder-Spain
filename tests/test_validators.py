@@ -16,6 +16,7 @@ class TestRankingWeightValidation(unittest.TestCase):
             duration=0.3,
             departure_time=0.2,
             flexibility=0.1,
+            rating=0.0
         )
 
         validate_ranking_weights(weights)
@@ -26,6 +27,7 @@ class TestRankingWeightValidation(unittest.TestCase):
             duration=0.3,
             departure_time=0.2,
             flexibility=0.2,
+            rating=0.0
         )
 
         with self.assertRaises(DataValidationError):
@@ -37,6 +39,7 @@ class TestRankingWeightValidation(unittest.TestCase):
             duration=0.5,
             departure_time=0.3,
             flexibility=0.3,
+            rating=0.0
         )
 
         with self.assertRaises(DataValidationError):
@@ -48,6 +51,7 @@ class TestRankingWeightValidation(unittest.TestCase):
             duration=0.0,
             departure_time=0.0,
             flexibility=0.0,
+            rating=0.0
         )
 
         with self.assertRaises(DataValidationError):
@@ -59,6 +63,7 @@ class TestRankingWeightValidation(unittest.TestCase):
             duration=0.5,
             departure_time=0.3,
             flexibility=0.2,
+            rating=0.0
         )
 
         with self.assertRaises(DataValidationError):
