@@ -10,7 +10,7 @@ def get_traveler_profiles():
     """
     profiles = [
         TravelerProfile(
-            name="Budget-focused",
+            name="Budget focused",
             weights=RankingWeights(
                 price=0.55,
                 duration=0.25,
@@ -30,7 +30,7 @@ def get_traveler_profiles():
             ),
         ),
         TravelerProfile(
-            name="Flexibility-focused",
+            name="Flexibility focused",
             weights=RankingWeights(
                 price=0.15,
                 duration=0.15,

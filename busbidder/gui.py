@@ -2,6 +2,8 @@ from datetime import datetime
 from math import isfinite
 import tkinter as tk
 from tkinter import messagebox, ttk
+import logging
+
 
 from busbidder.booking import (
     apply_bookings_to_offers,
@@ -19,6 +21,7 @@ from busbidder.exceptions import (
     DataSaveError,
     DataValidationError,
 )
+from busbidder.logging_config import configure_logging
 from busbidder.models import SearchRequest
 from busbidder.profiles import get_traveler_profiles
 from busbidder.ranking import rank_offers
@@ -27,11 +30,17 @@ from busbidder.search import filter_offers
 from busbidder.validators import validate_offer_references
 
 
+logger = logging.getLogger(__name__)
+
 def main():
-    """Create the search form and display the BusBidder window."""
+    """ Create the search form and display the BusBidder window """
+    configure_logging()
+    logger.info("BusBidder GUI started.")
+
     root = tk.Tk()
+    root.withdraw()
     root.title("BusBidder Spain")
-    root.geometry("1000x650")
+    root.geometry("1050x650")
     root.minsize(850, 500)
 
     scroll_container = ttk.Frame(root)
@@ -79,34 +88,54 @@ def main():
 
     root.bind_all("<MouseWheel>", scroll_page)
 
-    destinations = load_destinations(("destination_id", "name"))
-    companies = load_companies(("company_id", "name", "description"))
-    offers = load_offers(
-        (
-            "offer_id",
-            "company_id",
-            "destination_id",
-            "departure_at",
-            "arrival_at",
-            "price_eur",
-            "transfers",
-            "luggage_kg",
-            "changeable",
-            "refundable",
-            "seats_available",
-            "rating",
+    try:
+        destinations = load_destinations(("destination_id", "name"))
+        companies = load_companies(("company_id", "name", "description"))
+        offers = load_offers(
+            (
+                "offer_id",
+                "company_id",
+                "destination_id",
+                "departure_at",
+                "arrival_at",
+                "price_eur",
+                "transfers",
+                "luggage_kg",
+                "changeable",
+                "refundable",
+                "seats_available",
+                "rating",
+            )
         )
+
+        validate_offer_references(offers, companies, destinations)
+
+        bookings = load_bookings()
+        apply_bookings_to_offers(offers, bookings)
+
+        company_names = {
+            company.company_id: company.name
+            for company in companies
+        }
+        profiles = get_traveler_profiles()
+
+    except (DataLoadError, DataValidationError) as error:
+        logger.exception("BusBidder GUI could not load startup data.")
+        messagebox.showerror(
+            "Startup error",
+            str(error),
+            parent=root,
+        )
+        root.destroy()
+        return
+
+    logger.info(
+        "Loaded %d companies, %d destinations, %d offers, and %d bookings.",
+        len(companies),
+        len(destinations),
+        len(offers),
+        len(bookings),
     )
-
-    validate_offer_references(offers, companies, destinations)
-
-    bookings = load_bookings()
-    apply_bookings_to_offers(offers, bookings)
-    company_names = {
-        company.company_id: company.name
-        for company in companies
-    }
-    profiles = get_traveler_profiles()
 
     destination_options = [
         f"{destination.destination_id} - {destination.name}"
@@ -285,6 +314,15 @@ def main():
             request,
         )
 
+        logger.info(
+            "GUI search for %s from %s to %s using profile '%s' found %d offers.",
+            request.destination_id,
+            request.earliest_date,
+            request.latest_date,
+            selected_profile.name,
+            len(ranked_offers),
+        )
+
         current_search.update(
             request=request,
             profile=selected_profile,
@@ -322,6 +360,11 @@ def main():
                     offer.transfers,
                     offer.seats_available,
                     f"{offer.rating:.1f}/5",
+                    f"{result.price_score:.1f}",
+                    f"{result.duration_score:.1f}",
+                    f"{result.departure_time_score:.1f}",
+                    f"{result.flexibility_score:.1f}",
+                    f"{result.rating_score:.1f}",
                     f"{result.total_score:.2f}",
                 ),
             )
@@ -358,6 +401,10 @@ def main():
 
         # Check again in case the available seats changed after the search.
         if offer.seats_available <= 0:
+            logger.warning(
+                "GUI booking attempt for sold-out offer %s.",
+                offer.offer_id,
+            )
             messagebox.showerror(
                 "No seats available",
                 "This offer no longer has any seats available.",
@@ -382,8 +429,15 @@ def main():
             booking = create_booking(offer, bookings)
             save_booking(booking)
         except (DataLoadError, DataSaveError, DataValidationError) as error:
+            logger.exception("GUI booking failed for offer %s.", offer.offer_id)
             messagebox.showerror("Booking failed", str(error))
             return
+
+        logger.info(
+            "GUI booking %s saved for offer %s.",
+            booking.booking_reference,
+            booking.offer_id,
+        )
 
         # Update the in-memory data after the booking has been saved.
         bookings.append(booking)
@@ -490,6 +544,11 @@ def main():
         "transfers",
         "seats",
         "rating",
+        "price_score",
+        "duration_score",
+        "departure_score",
+        "flexibility_score",
+        "rating_score",
         "score",
     )
 
@@ -508,7 +567,7 @@ def main():
     details_label = ttk.Label(
         content_frame,
         textvariable=details_value,
-        wraplength=1050,
+        wraplength=850,
         justify="left",
         padding=10,
     )
@@ -523,6 +582,11 @@ def main():
         "transfers": ("Transfers", 75, "center"),
         "seats": ("Seats", 60, "center"),
         "rating": ("Rating", 80, "center"),
+        "price_score": ("Price score", 85, "center"),
+        "duration_score": ("Duration score", 95, "center"),
+        "departure_score": ("Departure score", 105, "center"),
+        "flexibility_score": ("Flexibility score", 115, "center"),
+        "rating_score": ("Rating score", 95, "center"),
         "score": ("Score", 90, "center"),
     }
 
@@ -536,6 +600,15 @@ def main():
             stretch=False,
         )
 
+    horizontal_scrollbar = ttk.Scrollbar(
+        results_frame,
+        orient="horizontal",
+        command=results_tree.xview,
+    )
+    horizontal_scrollbar.pack(side="bottom", fill="x")
+
+    results_tree.configure(xscrollcommand=horizontal_scrollbar.set)
+
     results_tree.pack(side="left", fill="both", expand=True)
 
     scrollbar = ttk.Scrollbar(
@@ -546,8 +619,10 @@ def main():
     scrollbar.pack(side="right", fill="y")
     results_tree.configure(yscrollcommand=scrollbar.set)
 
+    root.deiconify()
     root.mainloop()
 
+    logger.info("BusBidder GUI closed.")
 
 if __name__ == "__main__":
     main()

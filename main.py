@@ -20,6 +20,8 @@ from busbidder.exceptions import (
     DataSaveError,
     DataValidationError,
 )
+
+from busbidder.logging_config import configure_logging
 from busbidder.profiles import get_traveler_profiles
 from busbidder.ranking import rank_offers
 from busbidder.recommendations import explain_recommendation
@@ -27,10 +29,8 @@ from busbidder.search import filter_offers
 from busbidder.validators import validate_offer_references
 
 import logging
-from pathlib import Path
 
 logger = logging.getLogger(__name__)
-LOG_FILE = Path(__file__).resolve().parent / "busbidder.log"
 
 # List of the required headers for each CSV file
 COMPANY_COLUMNS = ("company_id", "name", "description")
@@ -51,18 +51,8 @@ OFFER_COLUMNS = (
 )
 
 
-def configure_logging():
-    """Set up a file for recording important application events."""
-    logging.basicConfig(
-        filename=LOG_FILE,
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-        encoding="utf-8",
-    )
-
-
 def main():
-    """Load the marketplace data, collect a search request, show matching offers."""
+    """ Load the marketplace data, collect a search request, show matching offers """
     # Logger initialization
     configure_logging()
     logger.info("BusBidder application started.")

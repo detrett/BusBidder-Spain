@@ -27,11 +27,11 @@ def sort_key(result):
 
 def rank_offers(offers, profile, request):
     """
-    Score and sort acceptable offers using a traveller's profile weights.
+    Score and sort acceptable offers using a traveler's profile weights.
         Args:
             offers: The offers that passed the hard search constraints.
             profile: The selected TravelerProfile and its ranking weights.
-            request: The traveller's SearchRequest, including any preferred time.
+            request: The traveler's SearchRequest, including any preferred time.
 
         Returns:
             RankedOffer objects sorted from highest score to lowest.
