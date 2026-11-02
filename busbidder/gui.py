@@ -29,8 +29,111 @@ from busbidder.recommendations import explain_recommendation
 from busbidder.search import filter_offers
 from busbidder.validators import validate_offer_references
 
+COLORS = {
+    "background": "#FCF4F5",
+    "surface": "#FFFFFF",
+    "text": "#29252A",
+    "heading": "#432B45",
+    "berry": "#A54150",
+    "berry_hover": "#873641",
+    "selected": "#F2E8EC",
+    "muted": "#6B626A",
+    "border": "#E3DADF",
+}
 
 logger = logging.getLogger(__name__)
+
+class RoundedButton(tk.Canvas):
+    """ Draw a clickable button with rounded corners."""
+
+    def __init__(
+        self,
+        parent,
+        text,
+        command,
+        color,
+        hover_color,
+        width=150,
+        height=46,
+        radius=10,
+    ):
+        """Create the button shape, label, and mouse and keyboard bindings"""
+        super().__init__(
+            parent,
+            width=width,
+            height=height,
+            bg=COLORS["background"],
+            bd=0,
+            highlightthickness=0,
+            cursor="hand2",
+            takefocus=True,
+        )
+
+        self.command = command
+        self.color = color
+        self.hover_color = hover_color
+
+        shape_options = {
+            "fill": color,
+            "outline": color,
+            "tags": "button_shape",
+        }
+
+        # These overlapping shapes create the rounded rectangle.
+        self.create_rectangle(
+            radius, 0, width - radius, height, **shape_options
+        )
+        self.create_rectangle(
+            0, radius, width, height - radius, **shape_options
+        )
+        self.create_oval(
+            0, 0, radius * 2, radius * 2, **shape_options
+        )
+        self.create_oval(
+            width - radius * 2, 0, width, radius * 2, **shape_options
+        )
+        self.create_oval(
+            0, height - radius * 2, radius * 2, height, **shape_options
+        )
+        self.create_oval(
+            width - radius * 2,
+            height - radius * 2,
+            width,
+            height,
+            **shape_options,
+        )
+
+        self.create_text(
+            width / 2,
+            height / 2,
+            text=text,
+            fill=COLORS["surface"],
+            font=("Segoe UI", 10, "bold"),
+        )
+
+        self.bind("<Enter>", lambda event: self._set_color(self.hover_color))
+        self.bind("<Leave>", lambda event: self._set_color(self.color))
+        self.bind("<Button-1>", self._activate)
+        self.bind("<Return>", self._activate)
+        self.bind("<space>", self._activate)
+
+    def _set_color(self, color):
+        """Change the button fill when the pointer enters or leaves."""
+        self.itemconfigure("button_shape", fill=color, outline=color)
+
+    def _activate(self, event=None):
+        """Run the button's assigned command."""
+        self.command()
+        return "break"
+
+
+def clear_combobox_selection(event):
+    """ Clear the text highlight after a dropdown receives focus."""
+    event.widget.after_idle(event.widget.selection_clear)
+
+def clear_entry_selection(event):
+    """ Clear text highlight when leaving an entry field. """
+    event.widget.after_idle(event.widget.selection_clear)
 
 def main():
     """ Create the search form and display the BusBidder window """
@@ -43,10 +146,200 @@ def main():
     root.geometry("1050x650")
     root.minsize(850, 500)
 
+    root.bind_class("TEntry", "<FocusOut>", clear_entry_selection, add="+")
+
+    root.option_add("*TCombobox*Listbox.background", COLORS["surface"])
+    root.option_add("*TCombobox*Listbox.foreground", COLORS["text"])
+    root.option_add("*TCombobox*Listbox.selectBackground", COLORS["selected"])
+    root.option_add("*TCombobox*Listbox.selectForeground", COLORS["text"])
+
+    # Style
+    root.configure(bg=COLORS["background"])
+
+    style = ttk.Style(root)
+
+    if "clam" in style.theme_names():
+        style.theme_use("clam")
+
+    style.configure(
+        "TFrame",
+        background=COLORS["background"],
+    )
+    style.configure(
+        "TLabel",
+        background=COLORS["background"],
+        foreground=COLORS["text"],
+        font=("Segoe UI", 10),
+    )
+    style.configure(
+        "Title.TLabel",
+        background=COLORS["background"],
+        foreground=COLORS["heading"],
+        font=("Segoe UI", 20, "bold"),
+    )
+    style.configure(
+        "Card.TFrame",
+        background=COLORS["surface"],
+    )
+    style.configure(
+        "Card.TLabel",
+        background=COLORS["background"],
+        foreground=COLORS["text"],
+    )
+    style.configure(
+        "Card.TCheckbutton",
+        background=COLORS["background"],
+        foreground=COLORS["text"],
+    )
+    style.map(
+        "Card.TCheckbutton",
+        background=[("active", COLORS["background"])],
+    )
+    style.configure(
+        "Status.TLabel",
+        background=COLORS["background"],
+        foreground=COLORS["heading"],
+        font=("Segoe UI", 10, "bold"),
+    )
+    style.configure(
+        "Details.TLabel",
+        background=COLORS["background"],
+        foreground=COLORS["text"],
+        font=("Segoe UI", 10),
+        padding=12,
+    )
+
+    style.configure(
+        "TEntry",
+        fieldbackground=COLORS["surface"],
+        foreground=COLORS["text"],
+        padding=7,
+    )
+    style.map(
+        "TEntry",
+        bordercolor=[("focus", COLORS["heading"])],
+        lightcolor=[("focus", COLORS["heading"])],
+        darkcolor=[("focus", COLORS["heading"])],
+        selectbackground=[
+            ("focus", COLORS["selected"]),
+            ("!focus", COLORS["surface"]),
+        ],
+        selectforeground=[("focus", COLORS["text"])],
+    )
+
+    style.configure(
+        "TCombobox",
+        fieldbackground=COLORS["surface"],
+        background=COLORS["surface"],
+        foreground=COLORS["text"],
+        padding=7,
+    )
+
+    style.map(
+        "TCombobox",
+        fieldbackground=[
+            ("readonly", COLORS["surface"]),
+            ("focus", COLORS["surface"]),
+        ],
+        background=[
+            ("readonly", COLORS["surface"]),
+            ("active", COLORS["surface"]),
+        ],
+        foreground=[
+            ("readonly", COLORS["text"]),
+            ("focus", COLORS["text"]),
+        ],
+        selectbackground=[
+            ("readonly", COLORS["selected"]),
+            ("focus", COLORS["selected"]),
+        ],
+        selectforeground=[
+            ("readonly", COLORS["text"]),
+            ("focus", COLORS["text"]),
+        ],
+        bordercolor=[("focus", COLORS["heading"])],
+        lightcolor=[("focus", COLORS["heading"])],
+        darkcolor=[("focus", COLORS["heading"])],
+    )
+
+    style.configure(
+        "Primary.TButton",
+        background=COLORS["berry"],
+        foreground=COLORS["surface"],
+        font=("Segoe UI", 10, "bold"),
+        padding=(16, 9),
+        borderwidth=0,
+    )
+    style.map(
+        "Primary.TButton",
+        background=[
+            ("pressed", COLORS["heading"]),
+            ("active", COLORS["berry_hover"]),
+        ],
+    )
+    style.configure(
+        "Secondary.TButton",
+        background=COLORS["heading"],
+        foreground=COLORS["surface"],
+        font=("Segoe UI", 10, "bold"),
+        padding=(16, 9),
+        borderwidth=0,
+    )
+    style.map(
+        "Secondary.TButton",
+        background=[
+            ("active", COLORS["berry_hover"]),
+            ("pressed", COLORS["berry_hover"]),
+        ],
+        foreground=[
+            ("active", COLORS["surface"]),
+            ("pressed", COLORS["surface"]),
+        ],
+    )
+    style.configure(
+        "Treeview",
+        background=COLORS["surface"],
+        fieldbackground=COLORS["surface"],
+        foreground=COLORS["text"],
+        rowheight=29,
+        font=("Segoe UI", 9),
+    )
+
+    style.configure(
+        "Treeview.Heading",
+        background=COLORS["heading"],
+        foreground=COLORS["surface"],
+        font=("Segoe UI", 9, "bold"),
+        padding=(6, 8),
+    )
+    style.configure("Treeview", rowheight=32)
+    style.configure("Treeview.Heading", padding=(6, 8))
+    style.map(
+        "Treeview.Heading",
+        background=[
+            ("pressed", COLORS["berry"]),
+            ("active", COLORS["berry_hover"]),
+        ],
+        foreground=[
+            ("pressed", COLORS["surface"]),
+            ("active", COLORS["surface"]),
+        ],
+    )
+    style.map(
+        "Treeview",
+        background=[("selected", COLORS["selected"])],
+        foreground=[("selected", COLORS["text"])],
+    )
+
     scroll_container = ttk.Frame(root)
     scroll_container.pack(fill="both", expand=True)
 
-    canvas = tk.Canvas(scroll_container, highlightthickness=0)
+    canvas = tk.Canvas(
+        scroll_container,
+        highlightthickness=0,
+        bg=COLORS["background"],
+    )
+
     page_scrollbar = ttk.Scrollbar(
         scroll_container,
         orient="vertical",
@@ -146,7 +439,7 @@ def main():
     heading = ttk.Label(
         content_frame,
         text="Search for bus offers",
-        font=("Arial", 18, "bold"),
+        style="Title.TLabel",
     )
     heading.pack(pady=(20, 15))
 
@@ -208,6 +501,7 @@ def main():
         ]
 
         if offer_id == current_search.get("top_offer_id"):
+            details.append("")
             details.append(
                 explain_recommendation(
                     result,
@@ -314,6 +608,8 @@ def main():
             request,
         )
 
+        results_tree.configure(height=max(3, min(len(ranked_offers), 8)))
+
         logger.info(
             "GUI search for %s from %s to %s using profile '%s' found %d offers.",
             request.destination_id,
@@ -353,6 +649,7 @@ def main():
                 iid=offer.offer_id,
                 values=(
                     company_names[offer.company_id],
+                    f"{result.total_score:.2f}",
                     offer.departure_at.strftime("%Y-%m-%d %H:%M"),
                     offer.arrival_at.strftime("%Y-%m-%d %H:%M"),
                     f"EUR {offer.price_eur:.2f}",
@@ -365,7 +662,6 @@ def main():
                     f"{result.departure_time_score:.1f}",
                     f"{result.flexibility_score:.1f}",
                     f"{result.rating_score:.1f}",
-                    f"{result.total_score:.2f}",
                 ),
             )
 
@@ -453,90 +749,119 @@ def main():
         # Run the current search again so the seat count and results refresh.
         search()
 
-    ttk.Label(form, text="Destination").grid(row=0, column=0, sticky="w", pady=6)
-    ttk.Combobox(
+    ttk.Label(
+        form, text="Destination", style="Card.TLabel"
+    ).grid(row=0, column=0, sticky="w", padx=(0, 12), pady=8)
+
+    destination_combo = ttk.Combobox(
         form,
         textvariable=destination_value,
         values=destination_options,
         state="readonly",
-    ).grid(row=0, column=1, sticky="ew", pady=6)
+    )
+    destination_combo.grid(row=0, column=1, columnspan=3, sticky="ew", pady=8)
+    destination_combo.bind("<FocusIn>", clear_combobox_selection)
+    destination_combo.bind("<<ComboboxSelected>>", clear_combobox_selection)
 
-    ttk.Label(form, text="First travel date (YYYY-MM-DD)").grid(
-        row=1, column=0, sticky="w", pady=6
-    )
-    ttk.Entry(form, textvariable=first_date_value).grid(
-        row=1, column=1, sticky="ew", pady=6
-    )
+    ttk.Label(
+        form, text="First travel date (YYYY-MM-DD)", style="Card.TLabel"
+    ).grid(row=1, column=0, sticky="w", padx=(0, 12), pady=8)
 
-    ttk.Label(form, text="Last travel date (YYYY-MM-DD)").grid(
-        row=2, column=0, sticky="w", pady=6
-    )
-    ttk.Entry(form, textvariable=last_date_value).grid(
-        row=2, column=1, sticky="ew", pady=6
-    )
+    ttk.Entry(
+        form, textvariable=first_date_value
+    ).grid(row=1, column=1, sticky="ew", padx=(0, 18), pady=8)
 
-    ttk.Label(form, text="Maximum budget (EUR)").grid(
-        row=3, column=0, sticky="w", pady=6
-    )
-    ttk.Entry(form, textvariable=budget_value).grid(
-        row=3, column=1, sticky="ew", pady=6
-    )
+    ttk.Label(
+        form, text="Last travel date (YYYY-MM-DD)", style="Card.TLabel"
+    ).grid(row=1, column=2, sticky="w", padx=(0, 12), pady=8)
 
-    ttk.Label(form, text="Maximum transfers").grid(
-        row=4, column=0, sticky="w", pady=6
-    )
-    ttk.Entry(form, textvariable=transfers_value).grid(
-        row=4, column=1, sticky="ew", pady=6
-    )
+    ttk.Entry(
+        form, textvariable=last_date_value
+    ).grid(row=1, column=3, sticky="ew", pady=8)
+
+    ttk.Label(
+        form, text="Maximum budget (EUR)", style="Card.TLabel"
+    ).grid(row=2, column=0, sticky="w", padx=(0, 12), pady=8)
+
+    ttk.Entry(
+        form, textvariable=budget_value
+    ).grid(row=2, column=1, sticky="ew", padx=(0, 18), pady=8)
+
+    ttk.Label(
+        form, text="Maximum transfers", style="Card.TLabel"
+    ).grid(row=2, column=2, sticky="w", padx=(0, 12), pady=8)
+
+    ttk.Entry(
+        form, textvariable=transfers_value
+    ).grid(row=2, column=3, sticky="ew", pady=8)
 
     ttk.Checkbutton(
         form,
         text="Require a changeable ticket",
         variable=changeable_value,
-    ).grid(row=5, column=1, sticky="w", pady=6)
+        style="Card.TCheckbutton",
+    ).grid(row=3, column=0, columnspan=2, sticky="w", pady=8)
 
-    ttk.Label(form, text="Preferred departure time (HH:MM, optional)").grid(
-        row=6, column=0, sticky="w", pady=6
-    )
-    ttk.Entry(form, textvariable=departure_time_value).grid(
-        row=6, column=1, sticky="ew", pady=6
-    )
+    ttk.Label(
+        form,
+        text="Preferred departure time (HH:MM, optional)",
+        style="Card.TLabel",
+    ).grid(row=3, column=2, sticky="w", padx=(0, 12), pady=8)
 
-    ttk.Label(form, text="Traveler profile").grid(
-        row=7, column=0, sticky="w", pady=6
-    )
-    ttk.Combobox(
+    ttk.Entry(
+        form, textvariable=departure_time_value
+    ).grid(row=3, column=3, sticky="ew", pady=8)
+
+    ttk.Label(
+        form, text="Traveler profile", style="Card.TLabel"
+    ).grid(row=4, column=0, sticky="w", padx=(0, 12), pady=8)
+
+    profile_combo = ttk.Combobox(
         form,
         textvariable=profile_value,
         values=profile_options,
         state="readonly",
-    ).grid(row=7, column=1, sticky="ew", pady=6)
+    )
+    profile_combo.grid(row=4, column=1, columnspan=3, sticky="ew", pady=8)
+    profile_combo.bind("<FocusIn>", clear_combobox_selection)
+    profile_combo.bind("<<ComboboxSelected>>", clear_combobox_selection)
 
     form.columnconfigure(1, weight=1)
+    form.columnconfigure(3, weight=1)
 
-    search_button = ttk.Button(
+    search_button = RoundedButton(
         content_frame,
         text="Search",
         command=search,
+        color=COLORS["berry"],
+        hover_color=COLORS["berry_hover"],
+        width=150,
     )
     search_button.pack(pady=10)
 
     results_count = tk.StringVar(value="Enter your search details above.")
 
-    ttk.Label(content_frame, textvariable=results_count).pack(pady=(10, 5))
-
-    results_frame = ttk.Frame(content_frame, padding=(10, 0, 10, 10))
-    results_frame.pack(fill="both", expand=True)
-
-    book_button = ttk.Button(
+    ttk.Label(
         content_frame,
-        text="Book selected offer",
-        command=book_selected_offer,
+        textvariable=results_count,
+        style="Status.TLabel",
+    ).pack(pady=(16, 10))
+
+    results_frame = ttk.Frame(
+        content_frame,
+        padding=0,
+        style="TFrame",
     )
-    book_button.pack(pady=(0, 10))
+    results_frame.pack(
+        fill="both",
+        expand=True,
+        padx=12,
+        pady=(0, 14),
+    )
 
     columns = (
         "company",
+        "score",
         "departure",
         "arrival",
         "price",
@@ -549,7 +874,6 @@ def main():
         "departure_score",
         "flexibility_score",
         "rating_score",
-        "score",
     )
 
     results_tree = ttk.Treeview(
@@ -567,27 +891,38 @@ def main():
     details_label = ttk.Label(
         content_frame,
         textvariable=details_value,
+        style="Details.TLabel",
         wraplength=850,
         justify="left",
-        padding=10,
+        padding=16,
     )
     details_label.pack(fill="x", padx=10, pady=(5, 10))
 
+    book_button = RoundedButton(
+        content_frame,
+        text="Book selected offer",
+        command=book_selected_offer,
+        color=COLORS["heading"],
+        hover_color=COLORS["berry"],
+        width=220,
+    )
+    book_button.pack(pady=(0, 22))
+
     column_settings = {
-        "company": ("Company", 140, "w"),
-        "departure": ("Departure", 150, "center"),
-        "arrival": ("Arrival", 150, "center"),
-        "price": ("Price", 100, "center"),
-        "duration": ("Duration", 100, "center"),
-        "transfers": ("Transfers", 75, "center"),
-        "seats": ("Seats", 60, "center"),
-        "rating": ("Rating", 80, "center"),
-        "price_score": ("Price score", 85, "center"),
-        "duration_score": ("Duration score", 95, "center"),
-        "departure_score": ("Departure score", 105, "center"),
-        "flexibility_score": ("Flexibility score", 115, "center"),
-        "rating_score": ("Rating score", 95, "center"),
-        "score": ("Score", 90, "center"),
+        "company": ("Company", 120, "w"),
+        "score": ("Total", 75, "center"),
+        "departure": ("Departure", 130, "center"),
+        "arrival": ("Arrival", 130, "center"),
+        "price": ("Price", 85, "center"),
+        "duration": ("Duration", 80, "center"),
+        "transfers": ("Transfers", 65, "center"),
+        "seats": ("Seats", 50, "center"),
+        "rating": ("Rating", 65, "center"),
+        "price_score": ("Price sc.", 75, "center"),
+        "duration_score": ("Duration sc.", 80, "center"),
+        "departure_score": ("Time sc.", 80, "center"),
+        "flexibility_score": ("Flex sc.", 80, "center"),
+        "rating_score": ("Rating sc.", 75, "center"),
     }
 
     for column, (heading, width, alignment) in column_settings.items():
@@ -605,19 +940,23 @@ def main():
         orient="horizontal",
         command=results_tree.xview,
     )
-    horizontal_scrollbar.pack(side="bottom", fill="x")
-
-    results_tree.configure(xscrollcommand=horizontal_scrollbar.set)
-
-    results_tree.pack(side="left", fill="both", expand=True)
-
-    scrollbar = ttk.Scrollbar(
+    vertical_scrollbar = ttk.Scrollbar(
         results_frame,
         orient="vertical",
         command=results_tree.yview,
     )
-    scrollbar.pack(side="right", fill="y")
-    results_tree.configure(yscrollcommand=scrollbar.set)
+
+    results_tree.configure(
+        xscrollcommand=horizontal_scrollbar.set,
+        yscrollcommand=vertical_scrollbar.set,
+    )
+
+    results_frame.columnconfigure(0, weight=1)
+    results_frame.rowconfigure(0, weight=1)
+
+    results_tree.grid(row=0, column=0, sticky="nsew")
+    vertical_scrollbar.grid(row=0, column=1, sticky="ns")
+    horizontal_scrollbar.grid(row=1, column=0, sticky="ew")
 
     root.deiconify()
     root.mainloop()
