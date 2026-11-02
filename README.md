@@ -1,34 +1,38 @@
 # BusBidder Spain
 
-ACIT4420 Scripting final project: a simulated bus offer marketplace for journeys from Madrid. The application will load offers from CSV files, validate and filter them, rank acceptable offers using traveller preferences, explain recommendations, and support simulated bookings.
+BusBidder Spain is a Python application for searching and comparing simulated bus offers from Madrid. It filters offers against a traveler's requirements, ranks the remaining offers using a selected traveler profile, explains the highest-ranked offer, and supports simulated bookings.
 
 ## Requirements
 
 - Python 3.10 or later
-- No third-party packages are required for the initial implementation; it uses the Python standard library.
+- Python standard library
+- Tkinter for the GUI
 
-## Run the application
+Run the commands below from the project root folder.
 
-From the project root, run:
+## Run the command-line application
 
 ```text
 python main.py
 ```
 
-The entry point is currently a placeholder and will be implemented during development.
+## Run the graphical application
 
-## Data files
+```text
+python -m busbidder.gui
+```
+
+## Data and log
 
 - `data/companies.csv` contains the five simulated bus companies.
-- `data/destinations.csv` contains the fifteen destinations.
-- `data/offers.csv` contains 75 sample offers, one for every company-destination combination. Sample departures are dated November 1–7, 2026.
+- `data/destinations.csv` contains fifteen destinations served from Madrid.
+- `data/offers.csv` contains 75 sample offers.
+- `data/bookings.csv` is created automatically when the first booking is made. It stores bookings locally so seat availability is reduced on later runs.
+
+The application writes its log to `busbidder.log` in the project root.
 
 ## Run the tests
-
-From the project root, run:
 
 ```text
 python -m unittest discover -s tests
 ```
-
-Test cases will be added as the application is developed.
